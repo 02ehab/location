@@ -71,6 +71,14 @@
       background: red;
       margin-left: 0.5rem;
       color: white;
+      border: none;
+      padding: 0.4rem 0.7rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .actions .edit-btn {
+      background: #006C35;
     }
   </style>
 </head>
@@ -115,6 +123,7 @@
   <script>
     const form = document.getElementById("placeForm");
     const placesList = document.getElementById("placesList");
+    let editIndex = -1;
 
     let places = JSON.parse(localStorage.getItem("places")) || [];
 
@@ -134,6 +143,7 @@
           ${place.hours ? `<small>🕒 ${place.hours}</small><br>` : ""}
           ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
           <div class="actions">
+            <button class="edit-btn" onclick="editPlace(${index})">تعديل</button>
             <button onclick="deletePlace(${index})">حذف</button>
           </div>
         `;
@@ -149,6 +159,18 @@
       }
     }
 
+    function editPlace(index) {
+      const place = places[index];
+      form.type.value = place.type;
+      form.name.value = place.name;
+      form.address.value = place.address;
+      form.phone.value = place.phone;
+      form.hours.value = place.hours;
+      form.map.value = place.map;
+      editIndex = index;
+      form.querySelector("button[type='submit']").textContent = "حفظ التعديلات";
+    }
+
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const newPlace = {
@@ -157,9 +179,17 @@
         address: form.address.value,
         phone: form.phone.value,
         hours: form.hours.value,
-        map: form.elements["map"].value
+        map: form.map.value
       };
-      places.push(newPlace);
+
+      if (editIndex > -1) {
+        places[editIndex] = newPlace;
+        editIndex = -1;
+        form.querySelector("button[type='submit']").textContent = "إضافة";
+      } else {
+        places.push(newPlace);
+      }
+
       savePlaces();
       displayPlaces();
       form.reset();
@@ -167,5 +197,6 @@
 
     displayPlaces();
   </script>
+
 </body>
 </html>
