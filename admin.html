@@ -70,6 +70,7 @@
     .actions button {
       background: red;
       margin-left: 0.5rem;
+      color: white;
     }
   </style>
 </head>
@@ -84,11 +85,11 @@
       <option value="مطعم">مطعم</option>
       <option value="كافية">كافية</option>
       <option value="صيدلية">صيدلية</option>
-      <option value=">مغسلة ملابس">مغسلة ملابس</option>
-      <option value="تطبيق توصيل"> تطبيق توصيل</option>
-      <option value="بوفية"> بوفية</option>
-      <option value="محل هدايا"> محل هدايا</option>
-      <option value="اخري"> اخري</option>
+      <option value="مغسلة ملابس">مغسلة ملابس</option>
+      <option value="تطبيق توصيل">تطبيق توصيل</option>
+      <option value="بوفية">بوفية</option>
+      <option value="محل هدايا">محل هدايا</option>
+      <option value="أخرى">أخرى</option>
     </select>
 
     <label>اسم المكان</label>
@@ -97,11 +98,14 @@
     <label>العنوان</label>
     <input type="text" name="address" required>
 
-    <label>رقم الجوال </label>
+    <label>رقم الجوال</label>
     <input type="tel" name="phone">
 
-    <label>ساعات العمل </label>
+    <label>ساعات العمل</label>
     <input type="text" name="hours">
+
+    <label>رابط Google Maps (اختياري)</label>
+    <input type="url" name="map" placeholder="https://maps.google.com/...">
 
     <button type="submit">إضافة</button>
   </form>
@@ -128,6 +132,7 @@
           <small>📍 ${place.address}</small><br>
           ${place.phone ? `<small>📞 رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></small><br>` : ""}
           ${place.hours ? `<small>🕒 ${place.hours}</small><br>` : ""}
+          ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
           <div class="actions">
             <button onclick="deletePlace(${index})">حذف</button>
           </div>
@@ -151,7 +156,8 @@
         name: form.name.value,
         address: form.address.value,
         phone: form.phone.value,
-        hours: form.hours.value
+        hours: form.hours.value,
+        map: form.elements["map"].value
       };
       places.push(newPlace);
       savePlaces();
