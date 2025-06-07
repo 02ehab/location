@@ -158,6 +158,7 @@
         <p>العنوان: ${place.address || "غير محدد"}</p>
         ${place.hours ? `<p>ساعات العمل: ${place.hours}</p>` : ""}
         ${place.phone ? `<p>رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></p>` : ""}
+        ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
       `;
       container.appendChild(card);
     });
