@@ -120,17 +120,50 @@
 
   <div class="places-list" id="placesList"></div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <script>
     const form = document.getElementById("placeForm");
     const placesList = document.getElementById("placesList");
     let editIndex = -1;
 
-    let places = JSON.parse(localStorage.getItem("places")) || [];
+    // تهيئة Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNXr9QiAPEhPLM7mrX-6e8g1jc6d9dfbg",
+      authDomain: "location-596b4.firebaseapp.com",
+      projectId: "location-596b4",
+      storageBucket: "location-596b4.appspot.com",
+      messagingSenderId: "353684348329",
+      appId: "1:353684348329:web:a0bae52949c702c42df8b8"
+    };
 
-    function savePlaces() {
-      localStorage.setItem("places", JSON.stringify(places));
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // تخزين البيانات محلياً في مصفوفة
+    let places = [];
+
+    // تحميل الأماكن من Firebase عند بدء التشغيل
+    function loadPlacesFromFirebase() {
+      db.ref("places").on("value", (snapshot) => {
+        const data = snapshot.val();
+        places = data ? Object.values(data) : [];
+        displayPlaces();
+      });
     }
 
+    // حفظ الأماكن إلى Firebase
+    function savePlacesToFirebase() {
+      const placesObj = {};
+      places.forEach((place, i) => {
+        placesObj[i] = place;
+      });
+      db.ref("places").set(placesObj);
+    }
+
+    // عرض الأماكن في الصفحة
     function displayPlaces() {
       placesList.innerHTML = "";
       places.forEach((place, index) => {
@@ -151,14 +184,15 @@
       });
     }
 
+    // حذف مكان
     function deletePlace(index) {
       if (confirm("هل تريد حذف هذا المكان؟")) {
         places.splice(index, 1);
-        savePlaces();
-        displayPlaces();
+        savePlacesToFirebase();
       }
     }
 
+    // تعديل مكان - تحميل البيانات في الفورم
     function editPlace(index) {
       const place = places[index];
       form.type.value = place.type;
@@ -171,6 +205,7 @@
       form.querySelector("button[type='submit']").textContent = "حفظ التعديلات";
     }
 
+    // التعامل مع إضافة أو تعديل المكان
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const newPlace = {
@@ -190,12 +225,12 @@
         places.push(newPlace);
       }
 
-      savePlaces();
-      displayPlaces();
+      savePlacesToFirebase();
       form.reset();
     });
 
-    displayPlaces();
+    // تحميل الأماكن أول مرة
+    loadPlacesFromFirebase();
   </script>
 
 </body>
