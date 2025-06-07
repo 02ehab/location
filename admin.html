@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة التحكم - منازل الرمال</title>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      margin: 2rem;
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    h1 {
+      color: #006C35;
+      text-align: center;
+    }
+
+    form {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+
+    label {
+      display: block;
+      margin: 0.5rem 0 0.2rem;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #006C35;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .places-list {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .place-card {
+      background: #fff;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .place-card strong {
+      color: #006C35;
+    }
+
+    .actions {
+      margin-top: 0.5rem;
+    }
+
+    .actions button {
+      background: red;
+      margin-left: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>لوحة تحكم منازل الرمال</h1>
+
+  <form id="placeForm">
+    <label>التصنيف</label>
+    <select name="type" required>
+      <option value="">-- اختر --</option>
+      <option value="مطعم">مطعم</option>
+      <option value="كافية">كافية</option>
+      <option value="صيدلية">صيدلية</option>
+      <option value=">مغسلة ملابس">مغسلة ملابس</option>
+      <option value="تطبيق توصيل"> تطبيق توصيل</option>
+      <option value="بوفية"> بوفية</option>
+      <option value="محل هدايا"> محل هدايا</option>
+      <option value="اخري"> اخري</option>
+    </select>
+
+    <label>اسم المكان</label>
+    <input type="text" name="name" required>
+
+    <label>العنوان</label>
+    <input type="text" name="address" required>
+
+    <label>رقم الجوال </label>
+    <input type="tel" name="phone">
+
+    <label>ساعات العمل </label>
+    <input type="text" name="hours">
+
+    <button type="submit">إضافة</button>
+  </form>
+
+  <div class="places-list" id="placesList"></div>
+
+  <script>
+    const form = document.getElementById("placeForm");
+    const placesList = document.getElementById("placesList");
+
+    let places = JSON.parse(localStorage.getItem("places")) || [];
+
+    function savePlaces() {
+      localStorage.setItem("places", JSON.stringify(places));
+    }
+
+    function displayPlaces() {
+      placesList.innerHTML = "";
+      places.forEach((place, index) => {
+        const div = document.createElement("div");
+        div.className = "place-card";
+        div.innerHTML = `
+          <strong>${place.type}:</strong> ${place.name}<br>
+          <small>📍 ${place.address}</small><br>
+          ${place.phone ? `<small>📞 رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></small><br>` : ""}
+          ${place.hours ? `<small>🕒 ${place.hours}</small><br>` : ""}
+          <div class="actions">
+            <button onclick="deletePlace(${index})">حذف</button>
+          </div>
+        `;
+        placesList.appendChild(div);
+      });
+    }
+
+    function deletePlace(index) {
+      if (confirm("هل تريد حذف هذا المكان؟")) {
+        places.splice(index, 1);
+        savePlaces();
+        displayPlaces();
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const newPlace = {
+        type: form.type.value,
+        name: form.name.value,
+        address: form.address.value,
+        phone: form.phone.value,
+        hours: form.hours.value
+      };
+      places.push(newPlace);
+      savePlaces();
+      displayPlaces();
+      form.reset();
+    });
+
+    displayPlaces();
+  </script>
+</body>
+</html>
