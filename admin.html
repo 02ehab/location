@@ -120,121 +120,125 @@
 
   <div class="places-list" id="placesList"></div>
 
-   <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
+  <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <script>
-    const form = document.getElementById("placeForm");
-    const placesList = document.getElementById("placesList");
-    let editIndex = -1;
+<script>
+  const form = document.getElementById("placeForm");
+  const placesList = document.getElementById("placesList");
+  let editIndex = -1;
 
-    // تهيئة Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCNXr9QiAPEhPLM7mrX-6e8g1jc6d9dfbg",
-      authDomain: "location-596b4.firebaseapp.com",
-      projectId: "location-596b4",
-      storageBucket: "location-596b4.appspot.com",
-      messagingSenderId: "353684348329",
-      appId: "1:353684348329:web:a0bae52949c702c42df8b8"
+  // تهيئة Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNXr9QiAPEhPLM7mrX-6e8g1jc6d9dfbg",
+    authDomain: "location-596b4.firebaseapp.com",
+    projectId: "location-596b4",
+    storageBucket: "location-596b4.appspot.com",
+    messagingSenderId: "353684348329",
+    appId: "1:353684348329:web:a0bae52949c702c42df8b8",
+    databaseURL: "https://location-596b4-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database(app); // ✅ استخدام App instance الصحيح
+
+  // تخزين البيانات محلياً في مصفوفة
+  let places = [];
+
+  // تحميل الأماكن من Firebase عند بدء التشغيل
+  function loadPlacesFromFirebase() {
+    db.ref("places").on("value", (snapshot) => {
+      const data = snapshot.val();
+      places = [];
+      for (let key in data) {
+        places.push({ ...data[key], _key: key });
+      }
+      displayPlaces();
+    });
+  }
+
+  // إضافة أو تحديث مكان في Firebase
+  function savePlaceToFirebase(place, key = null) {
+    console.log("📤 جاري حفظ المكان:", place, key);
+    if (key) {
+      db.ref("places/" + key).set(place);
+    } else {
+      db.ref("places").push(place);
+    }
+  }
+
+  // عرض الأماكن في الصفحة
+  function displayPlaces() {
+    placesList.innerHTML = "";
+    places.forEach((place, index) => {
+      const div = document.createElement("div");
+      div.className = "place-card";
+      div.innerHTML = `
+        <strong>${place.type}:</strong> ${place.name}<br>
+        <small>📍 ${place.address}</small><br>
+        ${place.phone ? `<small>📞 رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></small><br>` : ""}
+        ${place.hours ? `<small>🕒 ${place.hours}</small><br>` : ""}
+        ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
+        <div class="actions">
+          <button class="edit-btn" onclick="editPlace(${index})">تعديل</button>
+          <button onclick="deletePlace(${index})">حذف</button>
+        </div>
+      `;
+      placesList.appendChild(div);
+    });
+  }
+
+  // حذف مكان
+  function deletePlace(index) {
+    if (confirm("هل تريد حذف هذا المكان؟")) {
+      const key = places[index]._key;
+      db.ref("places/" + key).remove();
+    }
+  }
+
+  // تعديل مكان - تحميل البيانات في الفورم
+  function editPlace(index) {
+    const place = places[index];
+    form.type.value = place.type;
+    form.name.value = place.name;
+    form.address.value = place.address;
+    form.phone.value = place.phone;
+    form.hours.value = place.hours;
+    form.map.value = place.map;
+    editIndex = index;
+    form.querySelector("button[type='submit']").textContent = "حفظ التعديلات";
+  }
+
+  // التعامل مع إضافة أو تعديل المكان
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const newPlace = {
+      type: form.type.value,
+      name: form.name.value,
+      address: form.address.value,
+      phone: form.phone.value,
+      hours: form.hours.value,
+      map: form.map.value
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // تخزين البيانات محلياً في مصفوفة
-    let places = [];
-
-    // تحميل الأماكن من Firebase عند بدء التشغيل
-    function loadPlacesFromFirebase() {
-      db.ref("places").on("value", (snapshot) => {
-        const data = snapshot.val();
-places = [];
-for (let key in data) {
-  places.push({ ...data[key], _key: key });
-}
-        displayPlaces();
-      });
+    if (editIndex > -1) {
+      const key = places[editIndex]._key;
+      savePlaceToFirebase(newPlace, key);
+      editIndex = -1;
+      form.querySelector("button[type='submit']").textContent = "إضافة";
+    } else {
+      savePlaceToFirebase(newPlace);
     }
 
-    // إضافة أو تحديث مكان في Firebase
-function savePlaceToFirebase(place, key = null) {
-  if (key) {
-    db.ref("places/" + key).set(place);
-  } else {
-    db.ref("places").push(place);
-  }
-}
+    form.reset();
+  });
 
-    // عرض الأماكن في الصفحة
-    function displayPlaces() {
-      placesList.innerHTML = "";
-      places.forEach((place, index) => {
-        const div = document.createElement("div");
-        div.className = "place-card";
-        div.innerHTML = `
-          <strong>${place.type}:</strong> ${place.name}<br>
-          <small>📍 ${place.address}</small><br>
-          ${place.phone ? `<small>📞 رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></small><br>` : ""}
-          ${place.hours ? `<small>🕒 ${place.hours}</small><br>` : ""}
-          ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
-          <div class="actions">
-            <button class="edit-btn" onclick="editPlace(${index})">تعديل</button>
-            <button onclick="deletePlace(${index})">حذف</button>
-          </div>
-        `;
-        placesList.appendChild(div);
-      });
-    }
+  // تحميل الأماكن أول مرة
+  loadPlacesFromFirebase();
+</script>
 
-    // حذف مكان
-    function deletePlace(index) {
-      if (confirm("هل تريد حذف هذا المكان؟")) {
-        const key = places[index]._key;
-db.ref("places/" + key).remove();
-
-      }
-    }
-
-    // تعديل مكان - تحميل البيانات في الفورم
-    function editPlace(index) {
-      const place = places[index];
-      form.type.value = place.type;
-      form.name.value = place.name;
-      form.address.value = place.address;
-      form.phone.value = place.phone;
-      form.hours.value = place.hours;
-      form.map.value = place.map;
-      editIndex = index;
-      form.querySelector("button[type='submit']").textContent = "حفظ التعديلات";
-    }
-
-    // التعامل مع إضافة أو تعديل المكان
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const newPlace = {
-        type: form.type.value,
-        name: form.name.value,
-        address: form.address.value,
-        phone: form.phone.value,
-        hours: form.hours.value,
-        map: form.map.value
-      };
-
-      if (editIndex > -1) {
-        const key = places[editIndex]._key;
-savePlaceToFirebase(newPlace, key);
-editIndex = -1;
-        form.querySelector("button[type='submit']").textContent = "إضافة";
-      } else {
-savePlaceToFirebase(newPlace);
-      }
-      form.reset();
-    });
-
-    // تحميل الأماكن أول مرة
-    loadPlacesFromFirebase();
-  </script>
 
 </body>
 </html>
