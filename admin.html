@@ -120,7 +120,7 @@
 
   <div class="places-list" id="placesList"></div>
 
-  <!-- Firebase SDKs -->
+   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -149,19 +149,22 @@
     function loadPlacesFromFirebase() {
       db.ref("places").on("value", (snapshot) => {
         const data = snapshot.val();
-        places = data ? Object.values(data) : [];
+places = [];
+for (let key in data) {
+  places.push({ ...data[key], _key: key });
+}
         displayPlaces();
       });
     }
 
-    // حفظ الأماكن إلى Firebase
-    function savePlacesToFirebase() {
-      const placesObj = {};
-      places.forEach((place, i) => {
-        placesObj[i] = place;
-      });
-      db.ref("places").set(placesObj);
-    }
+    // إضافة أو تحديث مكان في Firebase
+function savePlaceToFirebase(place, key = null) {
+  if (key) {
+    db.ref("places/" + key).set(place);
+  } else {
+    db.ref("places").push(place);
+  }
+}
 
     // عرض الأماكن في الصفحة
     function displayPlaces() {
@@ -187,8 +190,9 @@
     // حذف مكان
     function deletePlace(index) {
       if (confirm("هل تريد حذف هذا المكان؟")) {
-        places.splice(index, 1);
-        savePlacesToFirebase();
+        const key = places[index]._key;
+db.ref("places/" + key).remove();
+
       }
     }
 
@@ -218,14 +222,13 @@
       };
 
       if (editIndex > -1) {
-        places[editIndex] = newPlace;
-        editIndex = -1;
+        const key = places[editIndex]._key;
+savePlaceToFirebase(newPlace, key);
+editIndex = -1;
         form.querySelector("button[type='submit']").textContent = "إضافة";
       } else {
-        places.push(newPlace);
+savePlaceToFirebase(newPlace);
       }
-
-      savePlacesToFirebase();
       form.reset();
     });
 
