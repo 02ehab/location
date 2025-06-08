@@ -87,8 +87,6 @@
       color: #fff;
     }
   </style>
-</head>
-<body>
   <header>منازل الرمال للشقق المخدومة</header>
   
   <main>
@@ -114,61 +112,59 @@
   <footer>
     &copy; 2025 منازل الرمال. جميع الحقوق محفوظة.
   </footer>
-<script>
-  async function fetchWeather() {
-    const apiKey = "9b34a37a88284e1285164027250706";
-    const city = "Al Majardah";
-    const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&lang=ar`;
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-database.js";
 
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNXr9QiAPEhPLM7mrX-6e8g1jc6d9dfbg",
+    authDomain: "location-596b4.firebaseapp.com",
+    databaseURL: "https://location-596b4-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "location-596b4",
+    storageBucket: "location-596b4.appspot.com",
+    messagingSenderId: "353684348329",
+    appId: "1:353684348329:web:a0bae52949c702c42df8b8",
+    measurementId: "G-PHDFCE64QB"
+  };
 
-      const weatherInfo = `
-        <p style="font-size: 1.2rem;">🌡️ درجة الحرارة: ${data.current.temp_c}°C</p>
-        <p style="color: #555;">🌤️ الحالة: ${data.current.condition.text}</p>
-        <p style="color: #555;">💧 الرطوبة: ${data.current.humidity}%</p>
-        <p style="color: #555;">🌬️ الرياح: ${data.current.wind_kph} كم/س</p>
-      `;
-      document.getElementById("weather-info").innerHTML = weatherInfo;
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
 
-    } catch (error) {
-      document.getElementById("weather-info").innerHTML = "<p style='color:red;'>حدث خطأ في جلب الطقس.</p>";
-      console.error("Weather error:", error);
-    }
-  }
+  function loadPlacesFromFirebase() {
+    const container = document.getElementById("places-container");
+    const placesRef = ref(database, 'places');
 
-  function loadPlaces() {
-    const container = document.querySelector(".places");
-    const places = JSON.parse(localStorage.getItem("places")) || [];
+    onValue(placesRef, (snapshot) => {
+      const data = snapshot.val();
+      console.log("بيانات الأماكن من Firebase:", data); // تعقب البيانات في الكونسول
+      container.innerHTML = "";
 
-    if (places.length === 0) {
-      container.innerHTML = "<p style='text-align:center;'>لا توجد أماكن مضافة بعد.</p>";
-      return;
-    }
+      if (!data) {
+        container.innerHTML = "<p style='text-align:center;'>لا توجد أماكن مضافة بعد.</p>";
+        return;
+      }
 
-    container.innerHTML = "";
-
-    places.forEach((place) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <h3>${place.name || "بدون اسم"}</h3>
-        ${place.type ? `<p><strong>التصنيف: ${place.type}</strong></p>` : ""}
-        <p>العنوان: ${place.address || "غير محدد"}</p>
-        ${place.hours ? `<p>ساعات العمل: ${place.hours}</p>` : ""}
-        ${place.phone ? `<p>رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></p>` : ""}
-        ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
-      `;
-      container.appendChild(card);
+      Object.values(data).forEach((place) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${place.name || "بدون اسم"}</h3>
+          ${place.type ? `<p><strong>التصنيف: ${place.type}</strong></p>` : ""}
+          <p>العنوان: ${place.address || "غير محدد"}</p>
+          ${place.hours ? `<p>ساعات العمل: ${place.hours}</p>` : ""}
+          ${place.phone ? `<p>رقم الجوال: <span dir="ltr"><a href="tel:${place.phone}">${place.phone}</a></span></p>` : ""}
+          ${place.map ? `<small>🗺️ <a href="${place.map}" target="_blank" style="color:#006C35;font-weight:bold;">افتح في Google Maps</a></small><br>` : ""}
+        `;
+        container.appendChild(card);
+      });
+    }, (error) => {
+      console.error("خطأ في قراءة البيانات من Firebase:", error);
+      container.innerHTML = "<p style='color:red; text-align:center;'>حدث خطأ في تحميل الأماكن.</p>";
     });
   }
 
-  // تشغيل الطقس وتحميل الأماكن
-  fetchWeather();
-  loadPlaces();
+  window.addEventListener("DOMContentLoaded", loadPlacesFromFirebase);
 </script>
-
-
+<div id="places-container"></div>
 </body>
 </html>
