@@ -165,5 +165,32 @@
   window.addEventListener("DOMContentLoaded", loadPlacesFromFirebase);
 </script>
 <div id="places-container"></div>
+  <script>
+  async function fetchWeather() {
+    const apiKey = "9b34a37a88284e1285164027250706";
+    const city = "Al Majardah, Saudi Arabia"; // صيغة واضحة للمكان
+    const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&lang=ar`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("فشل في تحميل البيانات");
+
+      const data = await response.json();
+      const weatherInfo = `
+        <p style="font-size: 1.2rem;">🌡️ درجة الحرارة: ${data.current.temp_c}°C</p>
+        <p style="color: #555;">🌤️ الحالة: ${data.current.condition.text}</p>
+        <p style="color: #555;">💧 الرطوبة: ${data.current.humidity}%</p>
+        <p style="color: #555;">🌬️ الرياح: ${data.current.wind_kph} كم/س</p>
+      `;
+      document.getElementById("weather-info").innerHTML = weatherInfo;
+    } catch (error) {
+      document.getElementById("weather-info").innerHTML =
+        "<p style='color:red;'>⚠️ لم يتم تحميل الطقس. تأكد من الاتصال والمفتاح.</p>";
+      console.error("Weather error:", error);
+    }
+  }
+
+  fetchWeather();
+</script>
 </body>
 </html>
