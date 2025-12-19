@@ -213,28 +213,29 @@
 
   // التعامل مع إضافة أو تعديل المكان
   form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const newPlace = {
-      type: form.type.value,
-      name: form.name.value,
-      address: form.address.value,
-      phone: form.phone.value,
-      hours: form.hours.value,
-      map: form.map.value
-      secret: "ADMIN_123"
-    };
+  e.preventDefault();
 
-    if (editIndex > -1) {
-      const key = places[editIndex]._key;
-      savePlaceToFirebase(newPlace, key);
-      editIndex = -1;
-      form.querySelector("button[type='submit']").textContent = "إضافة";
-    } else {
-      savePlaceToFirebase(newPlace);
-    }
+  const newPlace = {
+    type: form.type.value,
+    name: form.name.value,
+    address: form.address.value,
+    phone: form.phone.value,
+    hours: form.hours.value,
+    map: form.map.value,
+    secret: "ADMIN_123"   // ✅ أضف هذا السطر
+  };
 
-    form.reset();
-  });
+  if (editIndex > -1) {
+    const key = places[editIndex]._key;
+    savePlaceToFirebase(newPlace, key);
+    editIndex = -1;
+    form.querySelector("button[type='submit']").textContent = "إضافة";
+  } else {
+    savePlaceToFirebase(newPlace);
+  }
+
+  form.reset();
+});
 
   // تحميل الأماكن أول مرة
   loadPlacesFromFirebase();
